@@ -1,0 +1,13 @@
+python-dateutil
+pandas
+numpy
+scikit-learn
+xgboost
+joblib
+fastapi
+uvicorn
+lightkurve
+matplotlib
+jupyter
+shap
+optuna
