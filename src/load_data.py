@@ -3,7 +3,7 @@ import os
 
 def load_csv(file_path: str) -> pd.DataFrame:
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Fichier introuvable : {file_path}")
+        raise FileNotFoundError(f"unavailable file : {file_path}")
     return pd.read_csv(file_path)
 
 def load_all_data(data_dir: str = "data"):
