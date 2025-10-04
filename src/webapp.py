@@ -4,10 +4,7 @@ import joblib
 import pandas as pd
 import numpy as np
 
-# Configuration du chemin du modèle
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Assurez-vous que le chemin vers votre modèle est correct
-# Par défaut: src/models/xgb_model.pkl
 MODEL_FILE_PATH = os.path.join(CURRENT_DIR, "models", "xgb_model.pkl")
 
 
@@ -35,9 +32,6 @@ def load_trained_model(path):
         return None
 
 model = load_trained_model(MODEL_FILE_PATH)
-
-# Mapping des classes (doit correspondre à l'encodage utilisé lors de l'entraînement)
-# 0: CANDIDATE, 1: FALSE POSITIVE, 2: CONFIRMED (exemple typique)
 CLASS_MAP = {
     0: "CANDIDATE (Probable exoplanète)",
     1: "FALSE POSITIVE (Fausse alerte)",
@@ -50,9 +44,6 @@ if model is None:
         "Merci d'entraîner d'abord votre modèle."
     )
 else:
-    # ----------------------------------------------------------------------
-    # ÉTAPE CLÉ DE CORRECTION: Extraire la liste des colonnes attendues
-    # ----------------------------------------------------------------------
     try:
         MODEL_EXPECTED_FEATURES_ALL = model.get_booster().feature_names
         st.success("✅ Modèle entraîné et structure des features chargée avec succès !")
@@ -60,44 +51,25 @@ else:
         st.error(f"Erreur critique: Impossible d'extraire la liste des features du modèle. Le modèle ne peut pas être utilisé. Erreur: {e}")
         MODEL_EXPECTED_FEATURES_ALL = None
         st.stop()
-
-    # ----------------------------------------------------------------------
-    # Utilisation des Onglets Streamlit pour séparer les modes d'entrée
-    # ----------------------------------------------------------------------
     tab_single, tab_batch = st.tabs(["Classification Unitaire (Manuelle)", "Classification par Lot (CSV)"])
-
-    # ----------------------------------------------------------------------
-    # --- Classification Unitaire (Mode Manuel) ---
-    # ----------------------------------------------------------------------
     with tab_single:
-
-        # --- Définition des features pour le mode manuel (inclut toutes les colonnes) ---
         MODEL_EXPECTED_FEATURES = MODEL_EXPECTED_FEATURES_ALL
 
         st.sidebar.header("Analyse d'une exoplanète")
-
-        # Définition des entrées utilisateur minimales
         with st.sidebar.form("prediction_form"):
             st.subheader("Entrez les paramètres clés:")
-
-            # Paramètres d'entrée
             koi_score = st.number_input("KOI Score (Importance du signal)", value=1.000, min_value=0.0, max_value=1.0)
             koi_fpflag_nt = st.selectbox("Non-transit FP Flag (0: OK, 1: Problème de lumière)", options=[0, 1], index=0)
             koi_fpflag_ss = st.selectbox("Stellar Single FP Flag (0: OK, 1: Étoile Binaire suspecte)", options=[0, 1], index=0)
-
-            # Ajout de quelques features numériques critiques
             koi_period = st.number_input("Période Orbitale (jours)", value=11.23, min_value=0.0)
             koi_depth = st.number_input("Profondeur du Transit (ppm)", value=2700.0, min_value=0.0)
             koi_impact = st.number_input("Paramètre d'Impact", value=0.6, min_value=0.0, max_value=1.0)
-
-            # Entrée textuelle pour l'encodage One-Hot
             kepoi_name = st.text_input("Nom de l'objet KOI (Ex: K00082.01)", value="K00082.01")
 
 
             submitted = st.form_submit_button("Classer l'exoplanète")
 
         if submitted:
-            # Créer le DataFrame des entrées utilisateur
             user_input_data = {
                 'koi_score': koi_score,
                 'koi_fpflag_nt': koi_fpflag_nt,
@@ -106,32 +78,19 @@ else:
                 'koi_depth': koi_depth,
                 'koi_impact': koi_impact,
             }
-
-            # 1. Créer le DataFrame final en garantissant toutes les features attendues (remplir par défaut avec des zéros)
             df_final = pd.DataFrame(0.0, index=[0], columns=MODEL_EXPECTED_FEATURES)
-
-            # 2. Remplir le DataFrame final avec les entrées numériques de l'utilisateur
             for col, value in user_input_data.items():
                 if col in df_final.columns:
                     df_final.loc[0, col] = value
-
-            # 3. Gérer la colonne One-Hot 'kepoi_name'
             one_hot_col_name = f'kepoi_name_{kepoi_name}'
 
             if one_hot_col_name in df_final.columns:
                 df_final.loc[0, one_hot_col_name] = 1.0
             else:
                 st.warning(f"Le nom d'objet '{kepoi_name}' n'a pas été vu à l'entraînement. L'encodage One-Hot sera ignoré pour cette feature.")
-
-            # 4. Assurer l'ordre exact des colonnes
             df_final = df_final[MODEL_EXPECTED_FEATURES]
 
             st.caption(f"DataFrame prêt pour la prédiction. Shape: {df_final.shape}")
-
-            # ----------------------------------------------------------------------
-            # PRÉDICTION
-            # ----------------------------------------------------------------------
-
             try:
                 prediction_proba = model.predict_proba(df_final)[0]
                 prediction = np.argmax(prediction_proba)
@@ -152,10 +111,6 @@ else:
 
             except Exception as e:
                 st.error(f"Erreur lors de la prédiction unitaire. Erreur: {e}")
-
-    # ----------------------------------------------------------------------
-    # --- Classification par Lot (Mode Automatisé CSV) ---
-    # ----------------------------------------------------------------------
     with tab_batch:
 
         # --- Définition des features pour le mode batch (Exclut l'OHE du nom de l'objet) ---
@@ -177,11 +132,9 @@ else:
 
             # 1. Tente de lire le fichier avec le délimiteur virgule (par défaut)
             try:
-                # Ajout de on_bad_lines='skip' pour tolérer quelques erreurs de formatage
                 df_batch = pd.read_csv(uploaded_file, on_bad_lines='skip')
                 st.success(f"Fichier chargé (délimiteur : virgule). {len(df_batch)} lignes à classer.")
             except Exception as e:
-                # 2. Si échec, tente de lire avec le délimiteur point-virgule (commun en Europe/France)
                 try:
                     uploaded_file.seek(0) # Réinitialise le pointeur du fichier
                     df_batch = pd.read_csv(uploaded_file, sep=';', on_bad_lines='skip')
