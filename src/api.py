@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 import pandas as pd
 from load_data import load_all_data
 from preprocess import preprocess_data
-from train_model import train_and_evaluate
+from src.models.train_model import train_and_evaluate
 
 app = FastAPI(title="Exoplanet Detector API")
 
