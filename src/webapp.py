@@ -1,71 +1,74 @@
 import streamlit as st
-import pandas as pd
-import joblib
-import numpy as np
 import os
+import joblib
+import pandas as pd
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_FILE_PATH = os.path.join(CURRENT_DIR, "models", "xgb_model.pkl")
 
-from models.train_model import train_with_xgboost
-from data.preprocess import preprocess_tabular
 
-MODEL_PATH = "../models/xgb_model.pkl"
+st.set_page_config(
+    page_title="NASA Exoplanet Classifier",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
 
-st.set_page_config(page_title="Exoplanet Classifier", page_icon=":satellite:", layout="centered")
 st.title("🚀 NASA Exoplanet Classifier")
-st.write("Ce projet utilise un modèle IA entraîné sur les données exoplanètes de la NASA (Kepler, K2, TESS, etc).")
+st.markdown("Ce projet utilise un modèle IA entraîné sur les données exoplanètes de la NASA (Kepler, K2, TESS, etc).")
+
 
 @st.cache_resource
-def load_model(model_path):
-    if os.path.exists(model_path):
-        return joblib.load(model_path)
-    else:
+def load_trained_model(path):
+    """Tente de charger le modèle entraîné."""
+    try:
+        model = joblib.load(path)
+        return model
+    except FileNotFoundError:
+        return None
+    except Exception as e:
+        st.error(f"Erreur lors du chargement du modèle: {e}")
         return None
 
-model = load_model(MODEL_PATH)
+model = load_trained_model(MODEL_FILE_PATH)
 
 if model is None:
+    st.error(
+        f"Aucun modèle entraîné n'a été trouvé à l'emplacement : `{MODEL_FILE_PATH}`. "
+        "Merci d'entraîner d'abord votre modèle via l'interface CLI (`python src/app.py`)."
+    )
     st.warning("Aucun modèle entraîné n'a été trouvé. Merci d'entraîner d'abord votre modèle avec les données NASA via l'interface CLI.")
-    st.stop()
-st.header("1️⃣ Données à prédire")
-input_mode = st.radio("Comment voulez-vous fournir les données ?", ("Formulaire manuel", "Téléverser un fichier CSV"))
-
-if input_mode == "Formulaire manuel":
-    pl_orbper = st.number_input("Période orbitale (jours)", min_value=0.0, value=365.0)
-    pl_rade = st.number_input("Rayon planétaire (Terre = 1)", min_value=0.0, value=1.0)
-    stellar_teff = st.number_input("Température effective étoile (K)", min_value=0.0, value=5778.0)
-    pl_eqt = st.number_input("Température d'équilibre planète (K)", min_value=0.0, value=300.0)
-
-    input_dict = {
-        "pl_orbper": pl_orbper,
-        "pl_rade": pl_rade,
-        "st_teff": stellar_teff,
-        "pl_eqt": pl_eqt,
-    }
-    input_df = pd.DataFrame([input_dict])
-
 else:
-    uploaded_file = st.file_uploader("Choisissez un fichier CSV avec vos données", type=["csv"])
-    if uploaded_file is not None:
-        input_df = pd.read_csv(uploaded_file)
-    else:
-        st.warning("Veuillez uploader un fichier CSV pour continuer.")
-        st.stop()
 
-st.write("Aperçu de vos données :")
-st.write(input_df)
-st.header("2️⃣ Prédiction")
-if st.button("Prédire"):
-    try:
-        X, _, _ = preprocess_tabular(input_df, target_col="label")  # La colonne label n'existe pas ici mais c'est ok
-        proba = model.predict_proba(X)
-        pred = model.predict(X)
-        st.success(f"Classe prédite : **{pred[0]}**")
-        st.write(f"Probabilités (par classe) : {proba[0]}")
-    except Exception as e:
-        st.error(f"Erreur lors de la prédiction : {e}")
+    st.success("✅ Modèle entraîné chargé avec succès !")
 
-if hasattr(model, "feature_importances_"):
-    st.header("3️⃣ Importance des variables")
-    importances = model.feature_importances_
-    cols = input_df.columns if input_mode == "Téléverser un fichier CSV" else list(input_dict.keys())
-    imp_df = pd.DataFrame({"Variable": cols, "Importance": importances})
-    st.bar_chart(imp_df.set_index("Variable"))
+    st.sidebar.header("Analyse d'une exoplanète")
+
+    with st.sidebar.form("prediction_form"):
+        st.subheader("Entrez les paramètres clés:")
+
+        koi_score = st.number_input("Score KOI", value=0.5, min_value=0.0, max_value=1.0)
+        koi_fpflag_nt = st.selectbox("Non-transit FP Flag", options=[0, 1], index=0)
+        koi_fpflag_ss = st.selectbox("Stellar Single FP Flag", options=[0, 1], index=0)
+
+        submitted = st.form_submit_button("Classer l'exoplanète")
+
+    if submitted:
+        input_data = pd.DataFrame({
+            'koi_score': [koi_score],
+            'koi_fpflag_nt': [koi_fpflag_nt],
+            'koi_fpflag_ss': [koi_fpflag_ss]
+        })
+
+        try:
+            prediction = model.predict(input_data)[0]
+            st.subheader("Résultat de la Classification")
+            if prediction == 0:
+                st.metric("Disposition", "CANDIDATE", "Probable exoplanète")
+            elif prediction == 1:
+                st.metric("Disposition", "FALSE POSITIVE", "- Fausse alerte")
+            else:
+                st.metric("Disposition", "CONFIRMED", "Planète confirmée")
+
+        except Exception as e:
+            st.error(f"Erreur lors de la prédiction. Vérifiez les features d'entrée. Erreur: {e}")
+
+st.markdown("---")
