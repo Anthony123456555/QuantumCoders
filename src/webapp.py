@@ -133,7 +133,7 @@ st.markdown("---")
 
 status_placeholder = st.empty()
 
-status_placeholder.success("✅ Model trained and feature structure successfully loaded! (Simulated)")
+status_placeholder.success("✅ Model trained and feature structure successfully loaded!")
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Single Classification")
