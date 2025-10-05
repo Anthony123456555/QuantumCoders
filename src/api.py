@@ -10,13 +10,9 @@ print("🚀 Initializing API and loading data...")
 dataframes = load_all_data("data")
 merged_df = preprocess_data(dataframes)
 model = train_and_evaluate(merged_df)
-# --------------------------------------------
 
 @app.get("/")
 def root():
-    """
-    Root endpoint returning a welcome message.
-    """
     return {"message": "Welcome to the Exoplanet Detector API 🚀"}
 
 @app.post("/predict")

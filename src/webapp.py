@@ -137,8 +137,6 @@ status_placeholder.success("✅ Model trained and feature structure successfully
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Single Classification")
-with col2:
-    st.subheader("Batch Classification (CSV)")
 st.markdown("---")
 if st.button("Classify Exoplanet"):
     with st.spinner('🔭 Analyzing parameters and predicting...'):
@@ -179,6 +177,6 @@ if st.button("Classify Exoplanet"):
 
         except Exception as e:
             st.error(f"❌ Prediction Error: An error occurred. Please check the parameters or the model API status.")
-            st.exception(e) # Displays the traceback below for debugging, but hidden from the end user
+            st.exception(e)
 
 st.markdown("---")

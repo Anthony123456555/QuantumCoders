@@ -8,12 +8,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/loaders.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/preprocess.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/load_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/load_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models/predict.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/predict.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/train_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models/visualize.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/visualize.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/webapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/webapp.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -50,6 +44,7 @@
     "Python.app.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
@@ -118,7 +113,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1759572149216</updated>
-      <workItem from="1759572150543" duration="22566000" />
+      <workItem from="1759572150543" duration="24004000" />
+      <workItem from="1759660917227" duration="1667000" />
     </task>
     <servers />
   </component>
