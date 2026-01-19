@@ -8,7 +8,7 @@ This repository contains the work developed during the NASA Space Apps Challenge
 The project focuses on problem-solving, data exploration, and building a functional concept aligned with the challenge requirements.
 
 ## Technologies
-- JavaScript
+- Python
 - Web technologies
 - APIs and open data sources
 
